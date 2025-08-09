@@ -49,6 +49,29 @@ class DocumentProcessor:
             with open(ocr_path, 'w', encoding='utf-8') as f:
                 f.write(ocr_result.text)
             
+            # ============= ADD MATH OCR HERE =============
+            # Step 2.5: Math OCR (if math detected)
+            enhanced_text = ocr_result.text  # Initialize enhanced_text
+            
+            if ocr_result.has_math:
+                print(f"Step 2.5: Math OCR processing for {document_id}")
+                from app.core.math_ocr import math_ocr
+                
+                math_result = math_ocr.process_math_image(file_path, ocr_result.text)
+                
+                result["steps"]["math_ocr"] = {
+                    "status": "completed",
+                    "latex_expressions": math_result.get("latex_expressions", []),
+                    "pix2tex_success": math_result.get("pix2tex_success", False)
+                }
+                
+                # If we found LaTeX expressions, append them to the text
+                if math_result.get("latex_expressions"):
+                    enhanced_text += "\n\nMathematical Expressions:\n"
+                    for expr in math_result["latex_expressions"]:
+                        enhanced_text += f"\n{expr}"
+            # ============= END OF MATH OCR ADDITION =============
+            
             # Step 3: Vision Analysis (if API key is set)
             if settings.OPENAI_API_KEY != "placeholder-openai-key":
                 print(f"Step 3: Vision analysis for {document_id}")
@@ -57,9 +80,8 @@ class DocumentProcessor:
                     "status": "completed",
                     "enhanced_text": vision_result.get("enhanced_text", ocr_result.text)
                 }
-                enhanced_text = vision_result.get("enhanced_text", ocr_result.text)
+                enhanced_text = vision_result.get("enhanced_text", enhanced_text)  # Use enhanced_text
             else:
-                enhanced_text = ocr_result.text
                 result["steps"]["vision"] = {"status": "skipped", "reason": "No API key"}
             
             # Step 4: Generate PDF

@@ -1,14 +1,13 @@
 import cv2
 import numpy as np
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Any
 import re
-from pix2tex import cli as pix2tex_cli
 from PIL import Image
 import tempfile
 import os
 
 class MathOCR:
-    """Specialized OCR for mathematical expressions using pix2tex"""
+    """Specialized OCR for mathematical expressions"""
     
     def __init__(self):
         # Initialize pix2tex model
@@ -46,7 +45,7 @@ class MathOCR:
             print(f"Failed to load pix2tex model: {str(e)}")
             self.model = None
     
-    def extract_math_from_image(self, image_path: str) -> Dict[str, any]:
+    def extract_math_from_image(self, image_path: str) -> Dict[str, Any]:
         """Extract mathematical expressions from image using pix2tex"""
         results = {
             'latex_expressions': [],
@@ -55,8 +54,8 @@ class MathOCR:
         }
         
         if not self.model:
-            print("Pix2tex model not available")
-            return results
+            print("Pix2tex model not available, using fallback")
+            return self._fallback_math_extraction(image_path)
         
         try:
             # Open image
@@ -105,54 +104,72 @@ class MathOCR:
             
         except Exception as e:
             print(f"Error in pix2tex extraction: {str(e)}")
-            return results
+            return self._fallback_math_extraction(image_path)
+    
+    def _fallback_math_extraction(self, image_path: str) -> Dict[str, Any]:
+        """Fallback method when pix2tex is not available"""
+        return {
+            'latex_expressions': [],
+            'math_regions': self.detect_math_regions(image_path),
+            'success': False
+        }
     
     def detect_math_regions(self, image_path: str) -> List[Dict]:
         """Detect regions likely containing mathematical expressions"""
-        image = cv2.imread(image_path)
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        
-        # Apply edge detection
-        edges = cv2.Canny(gray, 50, 150)
-        
-        # Find contours
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        math_regions = []
-        for contour in contours:
-            x, y, w, h = cv2.boundingRect(contour)
+        try:
+            image = cv2.imread(image_path)
+            if image is None:
+                return []
+                
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             
-            # Filter based on aspect ratio and size (math expressions tend to be horizontal)
-            aspect_ratio = w / h if h > 0 else 0
-            area = w * h
+            # Apply edge detection
+            edges = cv2.Canny(gray, 50, 150)
             
-            if 0.5 < aspect_ratio < 10 and area > 500:
-                math_regions.append({
-                    'bbox': (x, y, w, h),
-                    'confidence': self._calculate_math_confidence(gray[y:y+h, x:x+w])
-                })
-        
-        return sorted(math_regions, key=lambda r: r['confidence'], reverse=True)
+            # Find contours
+            contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            
+            math_regions = []
+            for contour in contours:
+                x, y, w, h = cv2.boundingRect(contour)
+                
+                # Filter based on aspect ratio and size (math expressions tend to be horizontal)
+                aspect_ratio = w / h if h > 0 else 0
+                area = w * h
+                
+                if 0.5 < aspect_ratio < 10 and area > 500:
+                    math_regions.append({
+                        'bbox': (x, y, w, h),
+                        'confidence': self._calculate_math_confidence(gray[y:y+h, x:x+w])
+                    })
+            
+            return sorted(math_regions, key=lambda r: r['confidence'], reverse=True)
+        except Exception as e:
+            print(f"Error detecting math regions: {str(e)}")
+            return []
     
     def _calculate_math_confidence(self, region: np.ndarray) -> float:
         """Calculate confidence that a region contains math"""
-        # Simple heuristic based on density of non-text patterns
-        _, binary = cv2.threshold(region, 127, 255, cv2.THRESH_BINARY)
-        
-        # Count horizontal and vertical lines (common in fractions, matrices)
-        horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 1))
-        vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 25))
-        
-        h_lines = cv2.morphologyEx(binary, cv2.MORPH_OPEN, horizontal_kernel)
-        v_lines = cv2.morphologyEx(binary, cv2.MORPH_OPEN, vertical_kernel)
-        
-        h_count = cv2.countNonZero(h_lines)
-        v_count = cv2.countNonZero(v_lines)
-        
-        # More lines = more likely to be math
-        line_score = min((h_count + v_count) / (region.shape[0] * region.shape[1]), 1.0)
-        
-        return line_score
+        try:
+            # Simple heuristic based on density of non-text patterns
+            _, binary = cv2.threshold(region, 127, 255, cv2.THRESH_BINARY)
+            
+            # Count horizontal and vertical lines (common in fractions, matrices)
+            horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 1))
+            vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 25))
+            
+            h_lines = cv2.morphologyEx(binary, cv2.MORPH_OPEN, horizontal_kernel)
+            v_lines = cv2.morphologyEx(binary, cv2.MORPH_OPEN, vertical_kernel)
+            
+            h_count = cv2.countNonZero(h_lines)
+            v_count = cv2.countNonZero(v_lines)
+            
+            # More lines = more likely to be math
+            line_score = min((h_count + v_count) / (region.shape[0] * region.shape[1]), 1.0)
+            
+            return line_score
+        except:
+            return 0.0
     
     def process_math_image(self, image_path: str, text: str = "") -> Dict:
         """Process image for mathematical content"""

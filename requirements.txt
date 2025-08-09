@@ -12,7 +12,7 @@ numpy>=2.0.0,<2.3.0
 
 # Math OCR
 pix2tex==0.1.4
-latex2sympy==1.9.1
+latex2sympy2==1.9.1
 
 # OpenAI for GPT-4V
 openai==1.99.1
@@ -46,3 +46,12 @@ passlib[bcrypt]==1.7.4
 # Development
 pytest==8.4.1
 pytest-asyncio==1.1.0
+black==25.1.0
+flake8==7.3.0
+mypy==1.17.1
+
+# Additional OCR and PDF libraries
+reportlab==4.4.3
+pdf2image==1.17.0
+pytesseract==0.3.13
+nltk==3.9.1
