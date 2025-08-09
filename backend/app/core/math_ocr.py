@@ -2,11 +2,19 @@ import cv2
 import numpy as np
 from typing import List, Dict, Tuple, Optional
 import re
+from pix2tex import cli as pix2tex_cli
+from PIL import Image
+import tempfile
+import os
 
 class MathOCR:
-    """Specialized OCR for mathematical expressions"""
+    """Specialized OCR for mathematical expressions using pix2tex"""
     
     def __init__(self):
+        # Initialize pix2tex model
+        self.model = None
+        self._load_model()
+        
         # Mathematical symbols mapping
         self.math_symbols = {
             'integral': '∫',
@@ -26,7 +34,79 @@ class MathOCR:
             'phi': 'φ',
             'omega': 'ω'
         }
+    
+    def _load_model(self):
+        """Load pix2tex model"""
+        try:
+            # Initialize pix2tex
+            from pix2tex.cli import LatexOCR
+            self.model = LatexOCR()
+            print("Pix2tex model loaded successfully")
+        except Exception as e:
+            print(f"Failed to load pix2tex model: {str(e)}")
+            self.model = None
+    
+    def extract_math_from_image(self, image_path: str) -> Dict[str, any]:
+        """Extract mathematical expressions from image using pix2tex"""
+        results = {
+            'latex_expressions': [],
+            'math_regions': [],
+            'success': False
+        }
         
+        if not self.model:
+            print("Pix2tex model not available")
+            return results
+        
+        try:
+            # Open image
+            img = Image.open(image_path)
+            
+            # Convert to RGB if necessary
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Extract LaTeX using pix2tex
+            latex_result = self.model(img)
+            
+            if latex_result:
+                results['latex_expressions'].append(latex_result)
+                results['success'] = True
+                
+            # Detect math regions for more targeted extraction
+            math_regions = self.detect_math_regions(image_path)
+            
+            # Extract LaTeX from each region
+            for region in math_regions[:5]:  # Limit to 5 regions
+                x, y, w, h = region['bbox']
+                
+                # Crop region
+                region_img = img.crop((x, y, x + w, y + h))
+                
+                # Save to temporary file
+                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                    region_img.save(tmp.name)
+                    
+                    try:
+                        # Extract LaTeX from region
+                        region_latex = self.model(Image.open(tmp.name))
+                        if region_latex and region_latex not in results['latex_expressions']:
+                            results['latex_expressions'].append(region_latex)
+                            results['math_regions'].append({
+                                'bbox': region['bbox'],
+                                'latex': region_latex
+                            })
+                    except:
+                        pass
+                    finally:
+                        os.unlink(tmp.name)
+            
+            return results
+            
+        except Exception as e:
+            print(f"Error in pix2tex extraction: {str(e)}")
+            return results
+    
     def detect_math_regions(self, image_path: str) -> List[Dict]:
         """Detect regions likely containing mathematical expressions"""
         image = cv2.imread(image_path)
@@ -74,17 +154,36 @@ class MathOCR:
         
         return line_score
     
+    def process_math_image(self, image_path: str, text: str = "") -> Dict:
+        """Process image for mathematical content"""
+        # Extract math using pix2tex
+        pix2tex_results = self.extract_math_from_image(image_path)
+        
+        # Also try to extract from OCR text
+        text_expressions = self.extract_latex_from_text(text) if text else []
+        
+        # Combine results
+        all_expressions = list(set(pix2tex_results['latex_expressions'] + text_expressions))
+        
+        return {
+            'latex_expressions': all_expressions,
+            'math_regions': pix2tex_results['math_regions'],
+            'has_complex_math': len(all_expressions) > 0,
+            'recommended_processing': 'latex' if all_expressions else 'standard',
+            'pix2tex_success': pix2tex_results['success']
+        }
+    
     def extract_latex_from_text(self, text: str) -> List[str]:
-        """Extract and convert mathematical expressions to LaTeX"""
+        """Extract and convert mathematical expressions to LaTeX from text"""
         latex_expressions = []
         
         # Pattern for simple equations
-        equation_pattern = r'([a-zA-Z0-9\s\+\-\*\/\=\(\)]+)'
+        equation_pattern = r'([a-zA-Z0-9\s\+\-\*\/\=\(\)]+)='
         equations = re.findall(equation_pattern, text)
         
         for eq in equations:
-            if '=' in eq and len(eq) > 3:
-                latex = self._convert_to_latex(eq)
+            if len(eq) > 3:
+                latex = self._convert_to_latex(eq + '=')
                 if latex:
                     latex_expressions.append(latex)
         
@@ -118,18 +217,6 @@ class MathOCR:
             expr = f'${expr}$'
         
         return expr
-    
-    def process_math_image(self, image_path: str, text: str) -> Dict:
-        """Process image for mathematical content"""
-        math_regions = self.detect_math_regions(image_path)
-        latex_expressions = self.extract_latex_from_text(text)
-        
-        return {
-            'math_regions': len(math_regions),
-            'latex_expressions': latex_expressions,
-            'has_complex_math': len(math_regions) > 2 or any('\\' in expr for expr in latex_expressions),
-            'recommended_processing': 'latex' if latex_expressions else 'standard'
-        }
 
 # Global instance
 math_ocr = MathOCR()

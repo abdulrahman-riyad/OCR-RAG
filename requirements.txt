@@ -12,6 +12,7 @@ numpy>=2.0.0,<2.3.0
 
 # Math OCR
 pix2tex==0.1.4
+latex2sympy==1.9.1
 
 # OpenAI for GPT-4V
 openai==1.99.1
