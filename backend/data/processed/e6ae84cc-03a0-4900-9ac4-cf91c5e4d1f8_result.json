@@ -1,0 +1,35 @@
+{
+  "document_id": "e6ae84cc-03a0-4900-9ac4-cf91c5e4d1f8",
+  "status": "completed",
+  "steps": {
+    "storage": {
+      "status": "completed",
+      "url": "./data/uploads\\e6ae84cc-03a0-4900-9ac4-cf91c5e4d1f8.jpg"
+    },
+    "ocr": {
+      "status": "completed",
+      "text": "PC +5 hs",
+      "confidence": 0.6009559117029052
+    },
+    "vision": {
+      "status": "skipped",
+      "reason": "No API key"
+    },
+    "pdf": {
+      "status": "completed",
+      "path": "./data/processed\\e6ae84cc-03a0-4900-9ac4-cf91c5e4d1f8.pdf",
+      "url": "./data/processed\\e6ae84cc-03a0-4900-9ac4-cf91c5e4d1f8.pdf"
+    },
+    "rag_indexing": {
+      "status": "completed",
+      "indexed": true
+    }
+  },
+  "summary": {
+    "text_length": 8,
+    "confidence": 0.6009559117029052,
+    "has_math": false,
+    "storage_url": "./data/uploads\\e6ae84cc-03a0-4900-9ac4-cf91c5e4d1f8.jpg",
+    "pdf_url": "./data/processed\\e6ae84cc-03a0-4900-9ac4-cf91c5e4d1f8.pdf"
+  }
+}

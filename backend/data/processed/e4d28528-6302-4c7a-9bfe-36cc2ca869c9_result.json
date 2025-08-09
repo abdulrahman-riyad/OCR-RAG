@@ -1,0 +1,35 @@
+{
+  "document_id": "e4d28528-6302-4c7a-9bfe-36cc2ca869c9",
+  "status": "completed",
+  "steps": {
+    "storage": {
+      "status": "completed",
+      "url": "./data/uploads\\e4d28528-6302-4c7a-9bfe-36cc2ca869c9.jpg"
+    },
+    "ocr": {
+      "status": "completed",
+      "text": "This is a simple test document_ It contains multiple lines_ For testing OCR accuracy:",
+      "confidence": 0.9673515152497533
+    },
+    "vision": {
+      "status": "skipped",
+      "reason": "No API key"
+    },
+    "pdf": {
+      "status": "completed",
+      "path": "./data/processed\\e4d28528-6302-4c7a-9bfe-36cc2ca869c9.pdf",
+      "url": "./data/processed\\e4d28528-6302-4c7a-9bfe-36cc2ca869c9.pdf"
+    },
+    "rag_indexing": {
+      "status": "completed",
+      "indexed": true
+    }
+  },
+  "summary": {
+    "text_length": 85,
+    "confidence": 0.9673515152497533,
+    "has_math": false,
+    "storage_url": "./data/uploads\\e4d28528-6302-4c7a-9bfe-36cc2ca869c9.jpg",
+    "pdf_url": "./data/processed\\e4d28528-6302-4c7a-9bfe-36cc2ca869c9.pdf"
+  }
+}

@@ -1,0 +1,101 @@
+ocr-rag-project/
+├── README.md
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+├── requirements.txt              # Single requirements file for simplicity
+├── package.json                  # Root package.json for npm scripts
+│
+├── frontend/                     # Next.js Frontend
+│   ├── package.json
+│   ├── next.config.js
+│   ├── tailwind.config.js
+│   ├── tsconfig.json
+│   │
+│   ├── app/                      # App Router (simplified structure)
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── globals.css
+│   │   ├── upload/   
+│   │   │   └── page.tsx
+│   │   ├── documents/
+│   │   │   ├── page.tsx
+│   │   │   └── [id]/
+│   │   │       └── page.tsx
+│   │   └── search/
+│   │       └── page.tsx
+│   │
+│   ├── components/
+│   │   ├── Navigation.tsx
+│   │   ├── upload/
+│   │   │   ├── DropZone.tsx
+│   │   │   └── ProcessingStatus.tsx
+│   │   ├── documents/
+│   │   │   ├── DocumentCard.tsx
+│   │   │   └── PDFViewer.tsx
+│   │   └── search/
+│   │       ├── SearchBar.tsx
+│   │       └── ResultsList.tsx
+│   │
+│   └── lib/
+│       ├── api-client.ts
+│       ├── supabase.ts
+│       └── utils.ts
+│
+├── backend/                      # FastAPI Backend
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py              # FastAPI entry point
+│   │   ├── config.py            # Environment configuration
+│   │   │
+│   │   ├── api/                 # API endpoints
+│   │   │   ├── __init__.py
+│   │   │   ├── upload.py        # File upload endpoints
+│   │   │   ├── process.py       # OCR processing endpoints
+│   │   │   ├── documents.py     # Document CRUD
+│   │   │   └── search.py        # Search endpoints
+│   │   │
+│   │   ├── core/                # Core business logic
+│   │   │   ├── __init__.py
+│   │   │   ├── ocr.py          # OCR processing (EasyOCR + pix2tex)
+│   │   │   ├── vision.py       # GPT-4V integration
+│   │   │   ├── latex.py        # LaTeX generation
+│   │   │   └── pdf.py          # PDF creation with PyLaTeX
+│   │   │
+│   │   ├── services/           # Service layer
+│   │   │   ├── __init__.py
+│   │   │   ├── processor.py    # Main document processing pipeline
+│   │   │   ├── storage.py      # Supabase storage operations
+│   │   │   └── rag.py          # R2R integration
+│   │   │
+│   │   ├── models/             # Pydantic models
+│   │   │   ├── __init__.py
+│   │   │   ├── document.py
+│   │   │   └── requests.py
+│   │   │
+│   │   └── utils/              # Utilities
+│   │       ├── __init__.py
+│   │       ├── image.py        # Image preprocessing
+│   │       └── text.py         # Text processing
+│   │
+│   └── tests/
+│       ├── test_ocr.py
+│       └── test_api.py
+│
+├── r2r-config/                 # R2R Configuration
+│   ├── config.yaml
+│   └── docker-compose.r2r.yml
+│
+├── data/                       # Local data storage
+│   ├── uploads/               # Temporary uploads
+│   ├── processed/             # Processed documents
+│   └── cache/                 # OCR cache
+│
+├── scripts/                    # Utility scripts
+│   ├── setup.sh              # One-click setup script
+│   ├── setup.ps1             # Windows setup script
+│   └── test_ocr.py           # OCR testing script
+│
+└── docs/
+    ├── SETUP.md              # Setup instructions
+    └── API.md                # API documentation

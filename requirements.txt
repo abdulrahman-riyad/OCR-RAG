@@ -1,0 +1,47 @@
+# FastAPI and server
+fastapi==0.115.11
+uvicorn[standard]==0.35.0
+python-multipart==0.0.20
+python-dotenv==1.1.1
+
+# OCR libraries
+easyocr==1.7.2
+opencv-python==4.12.0.88
+Pillow==11.3.0
+numpy>=2.0.0,<2.3.0
+
+# Math OCR
+pix2tex==0.1.4
+
+# OpenAI for GPT-4V
+openai==1.99.1
+
+# LaTeX and PDF
+pylatex==1.4.2
+
+# Database and storage
+supabase==2.18.0
+asyncpg==0.30.0
+psycopg2-binary==2.9.10
+
+# ML and embeddings
+sentence-transformers==5.0.0
+torch==2.7.1
+torchvision==0.22.1
+
+# R2R client
+r2r==3.6.5
+
+# API and async
+httpx==0.28.1
+aiofiles==24.1.0
+
+# Utilities
+pydantic==2.11.7
+pydantic-settings==2.10.1
+python-jose[cryptography]==3.5.0
+passlib[bcrypt]==1.7.4
+
+# Development
+pytest==8.4.1
+pytest-asyncio==1.1.0
